@@ -1,0 +1,21 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "20.11.0",
+    "sdksVersions": {
+      "@microsoft/microsoft-graph-client": "3.0.2",
+      "@microsoft/teams-js": "2.24.0"
+    },
+    "version": "1.20.0",
+    "libraryName": "upload-attachment",
+    "libraryId": "75114690-32b0-42b3-b15d-dd304edbf95e",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "uploadAttachment",
+    "solutionShortDescription": "uploadAttachment description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

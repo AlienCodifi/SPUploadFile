@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "upload-attachment-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/uploadAttachment/UploadAttachmentWebPart.js",
+          "manifest": "./src/webparts/uploadAttachment/UploadAttachmentWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "UploadAttachmentWebPartStrings": "lib/webparts/uploadAttachment/loc/{locale}.js"
+  }
+}

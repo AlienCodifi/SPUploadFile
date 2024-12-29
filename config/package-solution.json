@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "upload-attachment-client-side-solution",
+    "id": "75114690-32b0-42b3-b15d-dd304edbf95e",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.20.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "uploadAttachment description"
+      },
+      "longDescription": {
+        "default": "uploadAttachment description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "upload-attachment Feature",
+        "description": "The feature that activates elements of the upload-attachment solution.",
+        "id": "03b82bd8-a1e4-449b-9937-17b1db09c4bf",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/upload-attachment.sppkg"
+  }
+}
