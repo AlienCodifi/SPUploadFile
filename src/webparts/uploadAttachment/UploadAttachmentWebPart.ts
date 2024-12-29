@@ -4,10 +4,11 @@ import { Version } from '@microsoft/sp-core-library';
 import {  type IPropertyPaneConfiguration,  PropertyPaneTextField} from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
-
 import * as strings from 'UploadAttachmentWebPartStrings';
 import { IUploadAttachmentControlProps } from './components/IUploadAttachmentProps';
 import MyDialogPopup from './components/MyModalPopupWebPart';
+import { getSP } from '../uploadAttachment/pnpconfig';
+
 
 export interface IUploadAttachmentWebPartProps {
   description: string;
@@ -22,16 +23,9 @@ export default class UploadAttachmentWebPart extends BaseClientSideWebPart<IUplo
   public render(): void {
     
     const element: React.ReactElement<IUploadAttachmentControlProps> = React.createElement(
-      /*UploadAttachment,
-      {
-        description: this.properties.description,
-        isDarkTheme: this._isDarkTheme,
-        environmentMessage: this._environmentMessage,
-        hasTeamsContext: !!this.context.sdks.microsoftTeams,
-        userDisplayName: this.context.pageContext.user.displayName,
-        absoluteURL:this.context.pageContext.site.absoluteUrl
-      }*/
-     MyDialogPopup,{absoluteURL:this.context.pageContext.site.absoluteUrl,spHttpClient: this.context.spHttpClient}
+      
+      MyDialogPopup,{absoluteURL:this.context.pageContext.site.absoluteUrl}
+
     );
     console.log(this._isDarkTheme,this._environmentMessage);
     ReactDom.render(element, this.domElement);
@@ -40,6 +34,7 @@ export default class UploadAttachmentWebPart extends BaseClientSideWebPart<IUplo
   protected onInit(): Promise<void> {
     return this._getEnvironmentMessage().then(message => {
       this._environmentMessage = message;
+      getSP(this.context);
     });
   }
 

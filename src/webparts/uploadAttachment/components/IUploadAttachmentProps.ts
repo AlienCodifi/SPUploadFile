@@ -1,4 +1,4 @@
-import { SPHttpClient } from "@microsoft/sp-http";
+
 
 export interface IUploadAttachmentProps {
   description: string;
@@ -11,7 +11,6 @@ export interface IUploadAttachmentProps {
 
 
 export interface IUploadAttachmentControlProps {
-  absoluteURL:string;
-  spHttpClient: SPHttpClient;
+  absoluteURL:string
 }
 

@@ -4,6 +4,7 @@ import type { IUploadAttachmentProps } from './IUploadAttachmentProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import MyDialogPopup from './MyModalPopupWebPart';
 
+
 export default class UploadAttachment extends React.Component<IUploadAttachmentProps> {
   public render(): React.ReactElement<IUploadAttachmentProps> {
     const {
@@ -25,7 +26,7 @@ export default class UploadAttachment extends React.Component<IUploadAttachmentP
         </div>
         <div>
 
-          <MyDialogPopup absoluteURL={absoluteURL} spHttpClient={this.context.spHttpClient}/>
+          <MyDialogPopup absoluteURL={absoluteURL} />
         </div>
       </section>
     );

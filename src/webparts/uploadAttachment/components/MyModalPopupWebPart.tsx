@@ -1,12 +1,17 @@
 import * as React from 'react';
 import { DefaultButton, Dialog, DialogType, DialogFooter, TextField, Dropdown, IDropdownOption, PrimaryButton, ProgressIndicator } from '@fluentui/react';
-import { SPHttpClient,  SPHttpClientResponse} from '@microsoft/sp-http';
-import { sp } from '@pnp/sp/presets/all';
+//import "@pnp/sp/webs";
+import "@pnp/sp/context-info";
+//import { IFile, IResponseItem } from "./interfaces";
+import { getSP } from "../pnpconfig";
+import { spfi } from "@pnp/sp";
+import { Caching } from "@pnp/queryable";
+import "@pnp/sp/files";
+import "@pnp/sp/folders";
+
 
 interface MyDialogPopupProps {
-  absoluteURL: string;
-  spHttpClient: SPHttpClient;
-}
+  absoluteURL: string}
 
 const classificationOptions: IDropdownOption[] = [
   { key: 'private', text: 'Private' },
@@ -14,7 +19,8 @@ const classificationOptions: IDropdownOption[] = [
   { key: 'confidential', text: 'Confidential' }
 ];
 
-const MyDialogPopup: React.FC<MyDialogPopupProps> = ({ absoluteURL,spHttpClient}) => {
+
+const MyDialogPopup: React.FC<MyDialogPopupProps> = ({ absoluteURL}) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [file, setFile] = React.useState<File | null>(null);
   const [classification, setClassification] = React.useState<string | undefined>(undefined);
@@ -22,41 +28,23 @@ const MyDialogPopup: React.FC<MyDialogPopupProps> = ({ absoluteURL,spHttpClient}
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = React.useState<number>(0);
   const [isUploading, setIsUploading] = React.useState<boolean>(false);
-  const [requestDigest, setRequestDigest] = React.useState<string | null>(null);
+   const allowedFileTypes = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/x-zip-compressed'
+  ];
+  const sp= spfi(getSP()).using(Caching({store:"session"}));
 
- const allowedFileTypes = [
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/x-zip-compressed'
-];
 
-  const fetchRequestDigest = async () => {
-    const response: SPHttpClientResponse = await spHttpClient.post(`${absoluteURL}/_api/contextinfo`, SPHttpClient.configurations.v1, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-    const data = await response.json();
-
-    setRequestDigest(data.FormDigestValue);
-  };
-  React.useEffect(() => {
-    fetchRequestDigest();
-  }, []);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) :any => {
-    const input = event.target as HTMLInputElement;
-    if (input.files) {
-      const selectedFile = input.files[0];
-      if (allowedFileTypes.includes(selectedFile.type)) {
-        setFile(selectedFile);
-        setErrorMessage(null);
-      } else {
-        setFile(null);
-        setErrorMessage('Invalid file type. Please upload an .xlsx, .docx, or .pptx file.');
-      }
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    if (selectedFile && !allowedFileTypes.includes(selectedFile.type)) {
+      setErrorMessage('Selected file type is not allowed');
+      setFile(null);
+    } else {
+      setErrorMessage(null);
+      setFile(selectedFile);
     }
   };
 
@@ -64,82 +52,37 @@ const MyDialogPopup: React.FC<MyDialogPopupProps> = ({ absoluteURL,spHttpClient}
     setClassification(option?.key as string);
   };
 
-  const handleValidityChange = (event: React.FormEvent<HTMLInputElement>, newValue?: string) => {
-    setValidity(newValue ? parseInt(newValue) : undefined);
+  const handleValidityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValidity(Number(event.target.value));
   };
 
-  const uploadFile=async (file: File) => {
-
-    
-  };
-
-  const startUpload = async (file: File) => {
-    const response: SPHttpClientResponse = await spHttpClient.post(`${absoluteURL}/_api/web/getfolderbyserverrelativeurl('Shared Documents')/files/add(url='${file.name}',overwrite=true)`, SPHttpClient.configurations.v1, {
-      headers: {
-        'Accept': 'application/json',
-        'X-RequestDigest': requestDigest || ''
-      }
-    });
-    return response.json();
-  };
-
- const continueUpload = async (file: File, uploadId: string, offset: number, chunk: Blob,ServerRelativeUrl:string) => {
-    const response: SPHttpClientResponse = await spHttpClient.post(`${absoluteURL}/_api/web/GetFileById('${uploadId}')/ContinueUpload(uploadId=guid'${uploadId}',fileOffset=${offset})`, SPHttpClient.configurations.v1, {
-      headers: {
-        'Accept': 'application/json;odata=verbose',
-        'X-RequestDigest': requestDigest || ''
-      },
-      body: chunk
-    });
-
-    await fetchRequestDigest();
-    return response.json();
-
-  };
-
-  const finishUpload = async (file: File, uploadId: string, offset: number,ServerRelativeUrl:string) => {
-    const response: SPHttpClientResponse = await spHttpClient.post(`${absoluteURL}/_api/web/getfilebyserverrelativeurl('${ServerRelativeUrl}')/finishupload(uploadId=guid'${uploadId}',fileOffset=${offset})`, SPHttpClient.configurations.v1, {
-      headers: {
-        'Accept': 'application/json;odata=verbose',
-        'X-RequestDigest': requestDigest || ''
-      }
-    });
-    return response.json();
-  };
-
-  const handleSubmit = async () => {
-    if (file && classification && validity) {
-      try {
-        setIsUploading(true);
-        await fetchRequestDigest();
-        const startUploadData = await startUpload(file);
-        const uploadId = startUploadData.UniqueId;
-        const chunkSize = 18560; // 10 MB
-        let offset = 0;
-
-        while (offset < file.size) {
-          const chunk = file.slice(offset, offset + chunkSize);
-          await continueUpload(file, uploadId, offset, chunk,startUploadData.ServerRelativeUrl);
-          offset += chunkSize;
-          setUploadProgress((offset / file.size) * 100);
-        }
-
-        await finishUpload(file, uploadId, file.size,startUploadData.ServerRelativeUrl);
-
-        console.log('File:', file);
-        console.log('Classification:', classification);
-        console.log('Validity (days):', validity);
-        setIsDialogOpen(false);
-        setIsUploading(false);
-        setUploadProgress(0);
-      } catch (error) {
-        setErrorMessage('Upload failed. Please try again.');
-        console.error(error);
-        setIsUploading(false);
-      }
-    } else {
-      setErrorMessage('Please fill out all fields and upload a valid file.');
+  const handleUpload = async () => {
+    setIsUploading(true);
+    if (!file) {
+      setErrorMessage('No file selected');
+      return;
     }
+    const fileNamePath = encodeURI(file.name);
+    if (!file || !classification || !validity) {
+      setErrorMessage('Please fill all fields');
+      return;
+    }
+    let result: any;
+// you can adjust this number to control what size files are uploaded in chunks
+if (file.size <= 10485760) {
+    // small upload
+    result = await sp.web.getFolderByServerRelativePath("Shared Documents").files.addUsingPath(fileNamePath, file, { Overwrite: true });
+} else {
+    // large upload
+    result = await sp.web.getFolderByServerRelativePath("Shared Documents").files.addChunked(fileNamePath, file, 
+        { progress: data => { setUploadProgress((data.offset/file.size)*100) }, 
+          Overwrite: true 
+        }
+    );
+}
+console.log(result);
+setIsUploading(false);
+setIsDialogOpen(false);
   };
 
   return (
@@ -151,29 +94,24 @@ const MyDialogPopup: React.FC<MyDialogPopupProps> = ({ absoluteURL,spHttpClient}
         dialogContentProps={{
           type: DialogType.largeHeader,
           title: 'Upload File',
-          closeButtonAriaLabel: 'Close'
-        }}
-        modalProps={{
-          isBlocking: false
+          subText: 'Please fill in the details below to upload your file.'
         }}
       >
-        <div>
-          <input type="file" accept=".xlsx,.docx,.pptx,.zip" onChange={handleFileChange} />
-          {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-          <Dropdown
-            label="Classification"
-            options={classificationOptions}
-            onChange={handleClassificationChange}
-          />
-          <TextField
-            label="Validity (days)"
-            type="number"
-            onChange={handleValidityChange}
-          />
-          {isUploading && <ProgressIndicator label="Uploading file..." percentComplete={uploadProgress / 100} />}
-        </div>
+        <TextField label="File" type="file" onChange={handleFileChange} accept=".xlsx,.docx,.pptx,.zip" />
+        <Dropdown
+          label="Classification"
+          options={classificationOptions}
+          onChange={handleClassificationChange}
+        />
+        <TextField
+          label="Validity (in days)"
+          type="number"
+          onChange={handleValidityChange}
+        />
+        {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
+        {isUploading && <ProgressIndicator label="Uploading..." percentComplete={uploadProgress / 100} />}
         <DialogFooter>
-          <PrimaryButton onClick={handleSubmit} text="Submit" />
+          <PrimaryButton onClick={handleUpload} text="Upload" />
           <DefaultButton onClick={() => setIsDialogOpen(false)} text="Cancel" />
         </DialogFooter>
       </Dialog>
