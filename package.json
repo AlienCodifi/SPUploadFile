@@ -12,6 +12,8 @@
     "test": "gulp test"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@fluentui/react": "^8.122.2",
     "@microsoft/sp-component-base": "1.20.0",
     "@microsoft/sp-core-library": "1.20.0",
@@ -20,6 +22,8 @@
     "@microsoft/sp-office-ui-fabric-core": "1.20.0",
     "@microsoft/sp-property-pane": "1.20.0",
     "@microsoft/sp-webpart-base": "1.20.0",
+    "@mui/icons-material": "^6.3.0",
+    "@mui/material": "^6.3.0",
     "@pnp/graph": "^4.8.0",
     "@pnp/logging": "^4.8.0",
     "@pnp/sp": "^4.8.0",
@@ -28,6 +32,7 @@
     "postcss": "^8.4.49",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "react-dropzone": "^14.3.5",
     "tslib": "2.3.1"
   },
   "devDependencies": {
